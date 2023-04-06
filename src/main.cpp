@@ -1,49 +1,42 @@
+///////////////////////////////////////////////////////////////////////////////////////////
+//                                                                                       //
+//   DESCRIPTION: blinking a red LED for 5 seconds and a blue LED for 100 milliseconds   //
+//                                                                                       //
+///////////////////////////////////////////////////////////////////////////////////////////
+
 #include <Arduino.h>
-#include <Arduino_FreeRTOS.h>
 
-const int LED_RED_PIN = 7;
-const int LED_BLUE_PIN = 8;
+const int RED_LED_PIN = 4;
+const int BLUE_LED_PIN = 5;
 
-void task1(void *parameters) {
-  digitalWrite(LED_RED_PIN, HIGH);
-  vTaskDelay(100 / portTICK_PERIOD_MS);
-  digitalWrite(LED_RED_PIN, LOW);
-  vTaskDelay(100 / portTICK_PERIOD_MS);
+void blinkRedLED(void *parameter) {
+    while (true) {
+        digitalWrite(RED_LED_PIN, HIGH);
+        vTaskDelay(5000 / portTICK_PERIOD_MS);
+        digitalWrite(RED_LED_PIN, LOW);
+        vTaskDelay(5000 / portTICK_PERIOD_MS);
+    }
 }
 
-void task2(void *parameters) {
-  digitalWrite(LED_BLUE_PIN, HIGH);
-  vTaskDelay(1000 / portTICK_PERIOD_MS);
-  digitalWrite(LED_BLUE_PIN, LOW);
-  vTaskDelay(1000 / portTICK_PERIOD_MS);
+void blinkBlueLED(void *parameter) {
+    while (true) {
+        digitalWrite(BLUE_LED_PIN, HIGH);
+        vTaskDelay(100 / portTICK_PERIOD_MS);
+        digitalWrite(BLUE_LED_PIN, LOW);
+        vTaskDelay(100 / portTICK_PERIOD_MS);
+    }
 }
 
 void setup() {
-  pinMode(LED_RED_PIN, OUTPUT);
-  pinMode(LED_BLUE_PIN, OUTPUT);
+    pinMode(RED_LED_PIN, OUTPUT);
+    pinMode(BLUE_LED_PIN, OUTPUT);
 
-  xTaskCreate(
-    task1, // function name
-    "Task 1", // task name
-    1000, // stack size
-    NULL, // task parameters
-    1, // task priority
-    NULL // task handle
-  );
-
-  // Doen't work for Arduino Uno if try to use both tasks.
-  // Works only one of them.
-
-  // xTaskCreate(
-  //   task2, // function name
-  //   "Task 2", // task name
-  //   1000, // stack size
-  //   NULL, // task parameters
-  //   1, // task priority
-  //   NULL // task handle
-  // );
+    // Note that xTaskCreatePinnedToCore() is used to create the tasks and pin them to a specific core.
+    // In this case, the red LED task is pinned to core 0 and the blue LED task is pinned to core 1.
+    xTaskCreatePinnedToCore(blinkRedLED, "Blink Red LED", 2048, NULL, 1, NULL, 0);
+    xTaskCreatePinnedToCore(blinkBlueLED, "Blink Blue LED", 2048, NULL, 1, NULL, 1);
 }
 
 void loop() {
-  
+    // do nothing here
 }
